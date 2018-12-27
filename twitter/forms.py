@@ -1,6 +1,13 @@
+from .models import Tweet
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
+
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Tweet
+        fields = ('title', 'content',)
 
 
 class ContactForm(forms.Form):
@@ -15,12 +22,10 @@ class EditProfileForm(forms.Form):
     bio = forms.CharField(required=False)
     gender = forms.ChoiceField(required=False, choices=(('M', 'Male'), ('F', 'Female')))
     model_pic = forms.ImageField(required=False)
+
+
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(max_length=254, required=True, )
-    CHOICES = [('student', 'student'),
-               ('professor', 'professor')]
-
-    type = forms.ChoiceField(choices=CHOICES, widget=forms.RadioSelect())
 
     class Meta:
         model = User
@@ -47,12 +52,4 @@ class SignUpForm(UserCreationForm):
         return password1
 
     def save(self, commit=True):
-        id = super(SignUpForm, self).save(commit)
-        type = self.cleaned_data['type']
-        if type == 'student':
-            Group.objects.get(name=type).user_set.add(self.instance)
-        elif type == 'professor':
-            Group.objects.get(name=type).user_set.add(self.instance)
-        else:
-            raise forms.ValidationError("چه")
-
+        super(SignUpForm, self).save(commit)

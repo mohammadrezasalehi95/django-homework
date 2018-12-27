@@ -3,11 +3,26 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 
 # Create your views here.
+from django.utils import timezone
 from django.views.generic import TemplateView
-
 from twitter.forms import *
 from twitter.models import Profile
 
+
+
+
+def post_new(request):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid() and request.user.is_authenticated:
+            post = form.save(commit=False)
+            post.user = request.user
+            post.save()
+            return HttpResponse("ur tweet saved")
+        else :return HttpResponse("ur are not logged in bad boy :)))))")
+    else:
+        form = PostForm()
+    return render(request, 'home/tweet_edit.html', {'form': form})
 
 class Search(TemplateView):
     template_name = "home/search_result.html"
@@ -31,17 +46,13 @@ class VProfile(TemplateView):
         request=self.request
         user = request.user
         if user.is_authenticated:
-            if request.user.groups.filter(name='student').exists():
-                type = 'student'
-            else:
-                type = 'professor'
             if not Profile.objects.all().filter(user=user).exists():
                 context={'firstname': user.first_name, 'lastname': user.last_name, 'username': user.username,
-                               'type': type}
+                               }
             else:
                 context={'firstname': user.first_name, 'lastname': user.last_name, 'username': user.username,
                                'bio': user.profile.bio, 'gender': user.profile.gender, 'image': user.profile.image.url,
-                               'type': type}
+                               }
 
             return context
         else:
@@ -52,7 +63,7 @@ def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            form.save()
             return redirect('/')
     else:
         form = SignUpForm()
