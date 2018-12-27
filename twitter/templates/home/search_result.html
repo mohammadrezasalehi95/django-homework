@@ -1,0 +1,16 @@
+{% extends "home/base.html" %}
+{% block content %}
+    {% for foo in ln %}
+        <div id="id_teacher_{{forloop.counter0}}">
+            <p id="id_username">
+                {{ foo.username }}
+            </p>
+            <p id="id_first_name">
+                {{ foo.first_name }}
+            </p>
+            <p id="id_last_name">
+                {{ foo.last_name }}
+            </p>
+        </div>
+    {% endfor %}
+{% endblock %}

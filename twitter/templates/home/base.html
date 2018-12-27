@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<nav id="id_navbar">
+    <a href="/" id="id_navbar_home">main</a>
+    <a href="/signup" id="id_navbar_signup"> sign up</a>
+    <a href="/contactus" id="id_navbar_contact_us">contact us</a>
+    {{ request.user.is_authenticated }}
+    {% if request.user.is_authenticated %}
+        <a href="/logout" id="id_navbar_logout">logout</a>
+        <a href="/profile" id="id_navbar_profile">profile</a>
+    {% else %}
+        <a href="/login" id="id_navbar_login">login</a>
+    {% endif %}
+    <form action="/search" method="get">
+        <input id="id_search_profiles_input" type="text" name="search_box"/>
+        <button id="id_search_profiles_button" type="submit">Submit</button>
+    </form>
+</nav>
+{% block content %}{% endblock content %}
+</body>
+</html>

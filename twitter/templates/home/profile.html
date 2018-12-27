@@ -1,0 +1,23 @@
+{% extends "home/base.html" %}
+{% block content %}
+    <img src="/{{ image }} id=" id_picture" >
+    <p id="id_first_name">{{ firstname }}</p>
+    <p id="id_last_name">{{ lastname }}</p>
+    <p id="id_username"> {{ username }}</p>
+    {% if gender == 'M' %}
+        <p id="id_gender">مرد</p>
+    {% else %}
+        <p id="id_gender">زن</p>
+    {% endif %}
+    <p id="id_bio">{{ bio }}</p>
+    <p>شما به عنوان
+        {% if type == 'student' %}
+            دانشجو
+        {% elif type == 'professor' %}
+            استاد
+        {% endif %}
+        وارد شدید
+    </p>
+
+    <a href="/profile/editprofile" id="id_edit_profile"> edit your profile</a>
+{% endblock content %}

@@ -15,7 +15,22 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.contrib import admin
+from django.urls import path, include, reverse_lazy
+from django.contrib.auth import views as auth_views
+from django.views.generic import TemplateView
+
+from twitter import  views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', TemplateView.as_view(template_name='home/main.html')),
+    path('signup/', views.signup),
+    path('contactus/', views.contactus),
+    path('login/', auth_views.LoginView.as_view(template_name='home/login.html')),
+    path('logout/', auth_views.LogoutView.as_view()),
+    path('profile/', views.VProfile.as_view()),
+    path('profile/editprofile', views.editprofile),
+    path('search/',views.Search.as_view()),
+
 ]
