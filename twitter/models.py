@@ -21,6 +21,6 @@ class Profile(models.Model):
     image = models.ImageField(null=True,upload_to='media/')
 class Request(models.Model):
     ip = models.TextField()
-    brower = models.TextField()
+    browser = models.TextField()
     time_stamp = models.DateTimeField(auto_now_add=True)
     authed=models.BooleanField(default=False)

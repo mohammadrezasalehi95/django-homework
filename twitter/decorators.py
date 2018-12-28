@@ -1,9 +1,8 @@
 from functools import wraps
-
 from django.conf import settings
 from django.contrib import messages
-
 import requests
+
 
 def check_recaptcha(view_func):
     @wraps(view_func)
@@ -23,4 +22,5 @@ def check_recaptcha(view_func):
                 request.recaptcha_is_valid = False
                 messages.error(request, 'Invalid reCAPTCHA. Please try again.')
         return view_func(request, *args, **kwargs)
+
     return _wrapped_view

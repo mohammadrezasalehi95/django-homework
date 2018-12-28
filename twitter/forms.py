@@ -1,8 +1,7 @@
 from .models import Tweet
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User, Group
-
+from django.contrib.auth.models import User
 
 class PostForm(forms.ModelForm):
     class Meta:

@@ -37,6 +37,9 @@ urlpatterns = [
     path('search/', views.Search.as_view()),
     path('post/new/', views.post_new, name='post_new'),
     path('auth/', include('social_django.urls', namespace='social')),  # <- Here
+    # path('api/v1/login', ),
+    # path('api/v1/tweet', ),
+    # path('api/v2/tweet', ),
 
 ]
 from django.conf import settings
