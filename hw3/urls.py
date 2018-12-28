@@ -24,8 +24,8 @@ from twitter import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', TemplateView.as_view(template_name='home/main.html')),
-    path('home/', TemplateView.as_view(template_name='home/main.html'),name='home'),
+    path('', views.ShowTweets.as_view()),
+    path('home/', views.ShowTweets.as_view(),name='home'),
     path('signup/', views.signup),
     path('contactus/', views.contactus),
     path('login/', auth_views.LoginView.as_view(template_name='home/login.html')),

@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.utils import timezone
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView
 from twitter.forms import *
 from twitter.models import Profile
 
@@ -107,3 +107,11 @@ def editprofile(request):
             user_profile.save()
             return HttpResponseRedirect("/profile")
     return render(request, "home/editprofile.html", {'form': form})
+
+
+
+class ShowTweets(ListView):
+    template_name = 'home/main.html'
+
+    def get_queryset(self):
+        return  Tweet.objects.all()

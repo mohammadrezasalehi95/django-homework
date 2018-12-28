@@ -9,6 +9,9 @@
 
 </head>
 <body>
+<div class="container center">
+<h1>Twitter !!!</h1>
+
 <div class="page-header">
 
     <a href="/" id="id_navbar_home">main</a>
@@ -24,14 +27,13 @@
     <a href="/signup" id="id_navbar_signup"> sign up</a>
 
     {% endif %}
-    <form action="/search" method="get">
-        <input id="id_search_profiles_input" type="text" name="search_box"/>
-        <button id="id_search_profiles_button" type="submit">Submit</button>
-    </form>
+    <!--<form action="/search" method="get">-->
+        <!--<input id="id_search_profiles_input" type="text" name="search_box"/>-->
+        <!--<button id="id_search_profiles_button" type="submit">Submit</button>-->
+    <!--</form>-->
 
 
 </div>
-<div class="container center">
             {% block content %}
             {% endblock content %}
 </div>
