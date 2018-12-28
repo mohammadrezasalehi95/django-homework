@@ -8,8 +8,8 @@ from django.views.generic import TemplateView, ListView
 from twitter.forms import *
 from twitter.models import Profile, Request
 
-n = 10
-h = 10
+n = 2
+h = 2
 
 
 def post_new(request):
@@ -154,11 +154,11 @@ def checkAttack(request):
     #     if last_fasle_num>=n:
     #         return False
 
-    time_threshold = datetime.now() - timedelta(minutes=h)
+    time_threshold = datetime.now() - timedelta(seconds=h)
     tmp = get_client_ip(request)
     results = Request.objects.filter(ip=tmp).filter(time_stamp__gt=time_threshold).count()
     check = (results) < n
-    print(results)
+    # print(results)
     return check
 
 
