@@ -25,13 +25,15 @@ from twitter import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', TemplateView.as_view(template_name='home/main.html')),
+    path('home/', TemplateView.as_view(template_name='home/main.html'),name='home'),
     path('signup/', views.signup),
     path('contactus/', views.contactus),
     path('login/', auth_views.LoginView.as_view(template_name='home/login.html')),
     path('logout/', auth_views.LogoutView.as_view(template_name='home/main.html')),
-    path('accounts/profile/', views.VProfile.as_view()),
+    path('profile/', views.VProfile.as_view()),
     path('profile/editprofile', views.editprofile),
     path('search/', views.Search.as_view()),
     path('post/new/', views.post_new, name='post_new'),
+    path('auth/', include('social_django.urls', namespace='social')),  # <- Here
 
 ]

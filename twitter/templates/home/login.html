@@ -14,11 +14,19 @@
             <p>Please login to see this page.</p>
         {% endif %}
     {% endif %}
-
+ <h2>Login</h2>
     <form method="post" action="">
         {% csrf_token %}
         {{ form.as_table }}
         <input type="submit" value="login" id="id_submit">
         <input type="hidden" name="next" value="{{ next }}">
     </form>
+
+
+
+   <br>
+  <p><strong>-- OR --</strong></p>
+  <a href="{% url 'social:begin' 'google-oauth2' %}">Login with Google</a><br>
+  <p><strong>-- OR --</strong></p>
+  <a href="{% url 'social:begin' 'github' %}">Login with GitHub</a><br>
 {% endblock %}
