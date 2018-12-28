@@ -1,16 +1,15 @@
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
-
+from datetime import datetime, timedelta
 # Create your views here.
 from django.utils import timezone
 from django.views.generic import TemplateView, ListView
 from twitter.forms import *
-from twitter.models import Profile
-
-
-
-
+from twitter.models import Profile, Request
+global n,h
+n=1
+h=10
 def post_new(request):
     if request.method == "POST":
         form = PostForm(request.POST)
@@ -120,9 +119,42 @@ def editprofile(request):
     return render(request, "home/editprofile.html", {'form': form})
 
 
+class SafeWall:
+    def __init__(self, get_response):
+        self.get_response = get_response
 
+    def __call__(self, request):
+        newR=Request()
+        newR.brower=request.META['HTTP_USER_AGENT']
+        newR.ip=get_client_ip(request)
+        if(request.user.is_authenticated):
+            newR.authed=True
+        newR.save()
+        if not checkAttack(request):
+            print("baaaaad *************")
+            return
+        response = self.get_response(request)
+        return response
+
+def checkAttack(request):
+    # if (not request.user.is_authenticated):
+    #     last_fasle_num=Request.objects.filter(ip=get_client_ip(request)).order_by('-timestamp')[:n].filter(authed=False).count()
+    #     if last_fasle_num>=n:
+    #         return False
+    time_threshold = datetime.now() - timedelta(hours=h)
+    results = Request.objects.filter(ip=get_client_ip(request)).filter(time_stamp__gt=time_threshold).count()
+    if results>=n:return False
+    return True
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 class ShowTweets(ListView):
     template_name = 'home/main.html'
 
     def get_queryset(self):
+
         return  Tweet.objects.all()

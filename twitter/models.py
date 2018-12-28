@@ -19,3 +19,8 @@ class Profile(models.Model):
         max_length=1, choices=(('M', 'Male'), ('F', 'Female')),
         blank=True, null=True)
     image = models.ImageField(null=True,upload_to='media/')
+class Request(models.Model):
+    ip = models.TextField()
+    brower = models.TextField()
+    time_stamp = models.DateTimeField(auto_now_add=True)
+    authed=models.BooleanField(default=False)
