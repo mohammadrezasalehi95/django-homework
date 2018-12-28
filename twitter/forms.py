@@ -20,7 +20,7 @@ class EditProfileForm(forms.Form):
     last_name = forms.CharField(required=False)
     bio = forms.CharField(required=False)
     gender = forms.ChoiceField(required=False, choices=(('M', 'Male'), ('F', 'Female')))
-    model_pic = forms.ImageField(required=False)
+    image = forms.ImageField(required=False)
 
 
 class SignUpForm(UserCreationForm):

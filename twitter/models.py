@@ -4,6 +4,10 @@ from django.db import models
 
 # Create your models here.
 
+class Token(models.Model):
+    token_str=models.CharField(primary_key=True, max_length=100)
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+
 
 class Tweet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -27,5 +31,6 @@ class Request(models.Model):
 
 class Reqer(models.Model):
     ip=models.TextField(primary_key=True)
-    badR=models.IntegerField()
+    badR=models.IntegerField(default=0)
+    badRA=models.IntegerField(default=0)
     banned=models.BooleanField(default=False)

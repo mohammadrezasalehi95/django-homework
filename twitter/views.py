@@ -1,14 +1,16 @@
-from django.contrib.auth.models import User
 from django.db.models import F
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
+from django.conf import settings
+from twitter.decorators import check_recaptcha
+from django.contrib.auth import authenticate
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
-# Create your views here.
-from django.utils import timezone
 from django.views.generic import TemplateView, ListView
 from twitter.forms import *
 from twitter.models import Profile, Request, Reqer
 from django.contrib.auth import views as auth_views
+from twitter.models import Profile, Request, Token
+from django.utils.crypto import get_random_string
 
 n = 1000
 h = 2
@@ -28,16 +30,6 @@ def post_new(request):
         form = PostForm()
     return render(request, 'home/tweet_edit.html', {'form': form})
 
-
-from django.views.generic import TemplateView
-import requests
-from django.shortcuts import render, redirect
-from django.conf import settings
-from django.contrib import messages
-
-from twitter.decorators import check_recaptcha
-from twitter.forms import *
-from twitter.models import Profile
 
 
 class Search(TemplateView):
@@ -80,6 +72,7 @@ class VProfile(TemplateView):
 
 @check_recaptcha
 def signup(request):
+
     if request.method == 'POST':
         form = SignUpForm(request.POST)
 
@@ -106,22 +99,34 @@ def contactus(request):
             # except BadHeaderError:
             #     return HttpResponse('Invalid header found.')
             return render(request, 'home/success.html')
-    return render(request, "home/contactus.html", {'form': form,
-                                                   'p': True})
-
+    return render(request, "home/contactus.html", {'form': form,'p': True})
 def login(request):
-
     if request.method == 'GET':
         return auth_views.LoginView.as_view(template_name='home/login.html')(request)
-    if User.objects.filter(username=request.POST.get('username')).count():
-        return auth_views.LoginView.as_view(template_name='home/login.html')(request)
+    else:
+        client_ip=get_client_ip(request)
+        reqer = Reqer.objects.get(ip=client_ip)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is None:
+            Reqer.objects.filter(ip=client_ip).update(badR=F('badR') + 1)
+
+        if reqer.badR>15:
+            return check_recaptcha(auth_views.LoginView.as_view(template_name='home/loginCaptcha.html'))(request)
+
+        if reqer.badR==15:
+            return HttpResponse('banned captchA')
+
+        if User.objects.filter(username=request.POST.get('username')).count():
+            return auth_views.LoginView.as_view(template_name='home/login.html')(request)
 
 
 def editprofile(request):
     if request.method == 'GET':
         form = EditProfileForm()
     else:
-        form = EditProfileForm(request.POST)
+        form = EditProfileForm(request.POST,request.FILES)
         if form.is_valid():
             user = request.user
             user.first_name = form.cleaned_data['first_name']
@@ -133,7 +138,13 @@ def editprofile(request):
                 user_profile = user.profile
                 user_profile.bio = form.cleaned_data['bio']
                 user_profile.gender = form.cleaned_data['gender']
-                user_profile.image = form.cleaned_data.get('image')
+
+                user_profile.image = request.FILES.get('image')
+                print("asdadsasdasadsdas")
+                print(
+                    '\n\n\n\n\n'
+                )
+                print(user_profile.image.url)
             user_profile.save()
             return HttpResponseRedirect("/profile")
     return render(request, "home/editprofile.html", {'form': form})
@@ -169,17 +180,6 @@ class SafeWall:
             HttpResponseForbidden("u are forbidden")
         if reqer.badR==whatch:Reqer.objects.filter(ip=client_ip).update(badR=0)
         return response
-#
-    # if (not request.user.is_authenticated):
-    #     last_num=Request.objects.filter(ip=get_client_ip(request)).order_by('-time_stamp')[:n]
-    #     tmp=True
-    #     for i in last_num:
-    #         # print(i.authed)
-    #         if i.authed==True:
-    #            tmp=False
-    #            break
-    #     if tmp:return False
-
 def checkAttack(request):
     global n, h
 
@@ -204,3 +204,46 @@ class ShowTweets(ListView):
 
     def get_queryset(self):
         return Tweet.objects.all()
+
+
+def v1_login(request):
+    username = request.GET['username']
+    password = request.GET['password']
+    user = authenticate(request, username=username, password=password)
+    client_ip=get_client_ip(request)
+    reqer = Reqer.objects.get(ip=client_ip)
+    if reqer.badRA>15:
+        return JsonResponse({'response':'banned'})
+    if user is not None:
+        token_str= get_random_string(64)
+        token=Token(user=user,token_str=token_str)
+        token.save()
+        Reqer.objects.filter(ip=client_ip).update(badRA=0)
+        return JsonResponse({'token':token_str})
+    else:
+        Reqer.objects.filter(ip=client_ip).update(badRA=F('badRA') + 1)
+        return JsonResponse({"incorrect password or username":reqer.badRA})
+
+
+def tweet(user,content,title):
+    new_tweet=Tweet(user=user,content=content,title=title)
+    new_tweet.save()
+
+
+def v1_tweet(request):
+    for token in Token.objects.filter(token_str=request.GET['token']).all():
+        tweet(token.user,request.GET['content'],request.GET['title'])
+        return HttpResponse("success")
+    return JsonResponse({'re':'you must send token with you'})
+
+def v2_tweet(request):
+    for token in Token.objects.filter(token_str=request.GET['token']).all():
+        tweet(token.user,request.GET['content'],request.GET['title'])
+        if request.GET.get('new_token')and request.GET.get('new_token')=='true':
+            token.delete()
+            token.token_str=get_random_string(64)
+            token.save()
+            return JsonResponse({'token':token.token_str,'success':'True'})
+        else:
+            return JsonResponse({'success':'True'})
+    return HttpResponse('!!!!!!!!!!!')

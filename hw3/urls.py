@@ -15,6 +15,10 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
+
+from django.conf import settings
+from django.urls import re_path
+from django.views.static import serve
 from django.urls import path
 from django.contrib import admin
 from django.urls import path, include, reverse_lazy
@@ -37,14 +41,10 @@ urlpatterns = [
     path('search/', views.Search.as_view()),
     path('post/new/', views.post_new, name='post_new'),
     path('auth/', include('social_django.urls', namespace='social')),  # <- Here
-    # path('api/v1/login', ),
-    # path('api/v1/tweet', ),
-    # path('api/v2/tweet', ),
-
+    path('api/v1/login', views.v1_login),
+    path('api/v1/tweet', views.v1_tweet),
+    path('api/v2/tweet', views.v2_tweet),
 ]
-from django.conf import settings
-from django.urls import re_path
-from django.views.static import serve
 
 # ... the rest of your URLconf goes here ...
 
