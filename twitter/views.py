@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 # Create your views here.
@@ -8,7 +8,7 @@ from django.views.generic import TemplateView, ListView
 from twitter.forms import *
 from twitter.models import Profile, Request
 
-n = 1
+n = 10
 h = 10
 
 
@@ -140,7 +140,8 @@ class SafeWall:
         if (request.user.is_authenticated):
             newR.authed = True
         newR.save()
-        checkAttack(request)
+        if not checkAttack(request):
+            return HttpResponseForbidden("u are forbidden")
         response = self.get_response(request)
         return response
 
