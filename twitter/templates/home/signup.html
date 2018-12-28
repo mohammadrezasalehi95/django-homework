@@ -9,6 +9,8 @@
     {% block content %}
     <form method="post" novalidate>
       {% csrf_token %}
+        <script src='https://www.google.com/recaptcha/api.js'></script>
+        <div class="g-recaptcha" data-sitekey="6LfZTYUUAAAAABG-O_snEdadN6ZZSWSm2V1SJ2Hr"></div>
     {{ form.as_p }}
       <button type="submit" id="id_submit">Create an account</button>
     </form>

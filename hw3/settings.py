@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from decouple import config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,8 +25,7 @@ SECRET_KEY = 'jnh61(8+6)%usr2x*%xlo5j)6n6uyc3)4&itlp*0a69g(!yy0r'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0',
-                 'localhost']
+ALLOWED_HOSTS = ['0.0.0.0','127.0.0.1','localhost']
 
 # Application definition
 
@@ -70,6 +70,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'hw3.wsgi.application'
 
@@ -133,3 +134,6 @@ AUTHENTICATION_BACKENDS = (
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY ='692900511523-op2avcvjmjqkkncjh62gu8ruuo9t2bq8.apps.googleusercontent.com'  #Paste CLient Key
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'xZOjB8YUETDSbxfMaKmg3tg5' #Paste Secret Key
+MEDIA_URL='/media/'
+MEDIA_ROOT='media'
+GOOGLE_RECAPTCHA_SECRET_KEY = config('GOOGLE_RECAPTCHA_SECRET_KEY')

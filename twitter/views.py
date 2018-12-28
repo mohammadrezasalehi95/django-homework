@@ -24,6 +24,16 @@ def post_new(request):
         form = PostForm()
     return render(request, 'home/tweet_edit.html', {'form': form})
 
+from django.views.generic import TemplateView
+import requests
+from django.shortcuts import render, redirect
+from django.conf import settings
+from django.contrib import messages
+
+from twitter.decorators import check_recaptcha
+from twitter.forms import *
+from twitter.models import Profile
+
 class Search(TemplateView):
     template_name = "home/search_result.html"
     def get_context_data(self):
@@ -58,19 +68,20 @@ class VProfile(TemplateView):
         else:
             return HttpResponse("login first", status=401)
 
-
+@check_recaptcha
 def signup(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
-        if form.is_valid():
-            form.save()
+
+        if form.is_valid() and request.recaptcha_is_valid:
+            user = form.save()
             return redirect('/')
     else:
         form = SignUpForm()
     return render(request, 'home/signup.html', {'form': form})
 
-
 def contactus(request):
+    print(settings.GOOGLE_RECAPTCHA_SECRET_KEY)
     if request.method == 'GET':
         form = ContactForm()
     else:
