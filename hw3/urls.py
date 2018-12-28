@@ -30,7 +30,7 @@ urlpatterns = [
     path('home/', views.ShowTweets.as_view(),name='home'),
     path('signup/', views.signup),
     path('contactus/', views.contactus),
-    path('login/', auth_views.LoginView.as_view(template_name='home/login.html')),
+    path('login/', views.login),
     path('logout/', auth_views.LogoutView.as_view(template_name='home/main.html')),
     path('profile/', views.VProfile.as_view()),
     path('profile/editprofile', views.editprofile),

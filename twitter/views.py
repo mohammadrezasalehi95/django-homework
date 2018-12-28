@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db.models import F
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
@@ -6,9 +7,10 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.views.generic import TemplateView, ListView
 from twitter.forms import *
-from twitter.models import Profile, Request
+from twitter.models import Profile, Request, Reqer
+from django.contrib.auth import views as auth_views
 
-n = 2
+n = 1000
 h = 2
 
 
@@ -72,6 +74,7 @@ class VProfile(TemplateView):
 
             return context
         else:
+            Reqer.objects.filter(ip=get_client_ip(request)).update(badR=F('badR')+1)
             return HttpResponse("login first", status=401)
 
 
@@ -106,6 +109,13 @@ def contactus(request):
     return render(request, "home/contactus.html", {'form': form,
                                                    'p': True})
 
+def login(request):
+
+    if request.method == 'GET':
+        return auth_views.LoginView.as_view(template_name='home/login.html')(request)
+    if User.objects.filter(username=request.POST.get('username')).count():
+        return auth_views.LoginView.as_view(template_name='home/login.html')(request)
+
 
 def editprofile(request):
     if request.method == 'GET':
@@ -134,32 +144,50 @@ class SafeWall:
         self.get_response = get_response
 
     def __call__(self, request):
+        client_ip=get_client_ip(request)
+        reqer=None
+        # for i in Reqer.objects.filter(ip=client_ip).all():
+        #     pass
+        # else:
+        #     reqer=Reqer.objects.create(ip=client_ip,badR=0,banned=False)
+        if Reqer.objects.filter(ip=client_ip).count()==0:
+            reqer=Reqer.objects.create(ip=client_ip,badR=0,banned=False)
+        reqer=Reqer.objects.get(ip=client_ip)
+        # print(reqer.banned)
+        if reqer.banned:return HttpResponseForbidden("u are forbidden")
+        whatch=reqer.badR
         newR = Request()
-        newR.browser = str(request.META['HTTP_USER_AGENT'])
-        newR.ip = str(get_client_ip(request))
-        if (request.user.is_authenticated):
-            newR.authed = True
+        newR.browser = (request.META['HTTP_USER_AGENT'])
+        newR.ip = (get_client_ip(request))
         newR.save()
         if not checkAttack(request):
             return HttpResponseForbidden("u are forbidden")
         response = self.get_response(request)
+        reqer = Reqer.objects.get(ip=client_ip)
+        if reqer.badR>=n:
+            Reqer.objects.filter(ip=client_ip).update(banned=True)
+            HttpResponseForbidden("u are forbidden")
+        if reqer.badR==whatch:Reqer.objects.filter(ip=client_ip).update(badR=0)
         return response
-
+#
+    # if (not request.user.is_authenticated):
+    #     last_num=Request.objects.filter(ip=get_client_ip(request)).order_by('-time_stamp')[:n]
+    #     tmp=True
+    #     for i in last_num:
+    #         # print(i.authed)
+    #         if i.authed==True:
+    #            tmp=False
+    #            break
+    #     if tmp:return False
 
 def checkAttack(request):
     global n, h
 
-    # if (not request.user.is_authenticated):
-    #     last_fasle_num=Request.objects.filter(ip=get_client_ip(request)).order_by('-timestamp')[:n].filter(authed=False).count()
-    #     if last_fasle_num>=n:
-    #         return False
 
     time_threshold = datetime.now() - timedelta(seconds=h)
     tmp = get_client_ip(request)
     results = Request.objects.filter(ip=tmp).filter(time_stamp__gt=time_threshold).count()
-    check = (results) < n
-    # print(results)
-    return check
+    return (results) < n
 
 
 def get_client_ip(request):

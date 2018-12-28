@@ -23,4 +23,9 @@ class Request(models.Model):
     ip = models.TextField()
     browser = models.TextField()
     time_stamp = models.DateTimeField(auto_now_add=True)
-    authed=models.BooleanField(default=False)
+
+
+class Reqer(models.Model):
+    ip=models.TextField(primary_key=True)
+    badR=models.IntegerField()
+    banned=models.BooleanField(default=False)
