@@ -25,7 +25,7 @@ SECRET_KEY = 'jnh61(8+6)%usr2x*%xlo5j)6n6uyc3)4&itlp*0a69g(!yy0r'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0','127.0.0.1','localhost']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', '*.*.*.*','192.168.1.34']
 
 # Application definition
 
@@ -71,7 +71,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'hw3.wsgi.application'
 
@@ -132,8 +131,8 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-MEDIA_URL='/media/'
-MEDIA_ROOT='media'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
 GOOGLE_RECAPTCHA_SECRET_KEY = config('GOOGLE_RECAPTCHA_SECRET_KEY')
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY =config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')

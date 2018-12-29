@@ -1,0 +1,22 @@
+body {
+    margin: 30px;
+    background: lavender;
+    text-align: left;
+    padding-right: 23%;
+
+}
+h2 {
+    font-size: 11pt;
+    padding-bottom: 10px;
+    color:lightslategray;
+}
+
+h1{
+    font-size: 13pt;
+    padding-bottom: 10px;
+}
+p {
+    font-family:sans-serif;
+    font-size: 13pt;
+}
+

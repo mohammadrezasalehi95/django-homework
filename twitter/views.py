@@ -7,10 +7,11 @@ from django.shortcuts import render, redirect
 from datetime import datetime, timedelta
 from django.views.generic import TemplateView, ListView
 from twitter.forms import *
-from twitter.models import Profile, Request, Reqer
+from twitter.models import Profile, Request, Reqer, LoggedInUser
 from django.contrib.auth import views as auth_views
 from twitter.models import Profile, Request, Token
 from django.utils.crypto import get_random_string
+from django.contrib.sessions.models import Session
 
 n = 1000
 h = 2
@@ -100,15 +101,35 @@ def contactus(request):
             #     return HttpResponse('Invalid header found.')
             return render(request, 'home/success.html')
     return render(request, "home/contactus.html", {'form': form,'p': True})
+def logout(request):
+    # LoggedInUser.objects.filter(user=request.user).delete()
+    return auth_views.LogoutView.as_view(template_name='home/main.html')(request)
+
 def login(request):
     if request.method == 'GET':
         return auth_views.LoginView.as_view(template_name='home/login.html')(request)
     else:
-        client_ip=get_client_ip(request)
-        reqer = Reqer.objects.get(ip=client_ip)
+        flag=True
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
+        if user:
+            for logged_user in LoggedInUser.objects.filter(user=user).all():
+                stored_session_key = logged_user.session_key
+                print("********")
+                print(stored_session_key)
+                print("********")
+                if stored_session_key and stored_session_key != request.session.session_key:
+                    Session.objects.get(session_key=stored_session_key).delete()
+                    LoggedInUser.objects.filter(user=user).update(session_key=request.session.session_key)
+                    flag=False
+                break
+
+
+
+        client_ip=get_client_ip(request)
+        reqer = Reqer.objects.get(ip=client_ip)
+
         if user is None:
             Reqer.objects.filter(ip=client_ip).update(badR=F('badR') + 1)
 
@@ -119,8 +140,10 @@ def login(request):
             return HttpResponse('banned captchA')
 
         if User.objects.filter(username=request.POST.get('username')).count():
-            return auth_views.LoginView.as_view(template_name='home/login.html')(request)
-
+            tmp= auth_views.LoginView.as_view(template_name='home/login.html')(request)
+            if flag:
+                LoggedInUser.objects.create(user=user,session_key=request.session.session_key)
+            return tmp
 
 def editprofile(request):
     if request.method == 'GET':
@@ -156,11 +179,6 @@ class SafeWall:
 
     def __call__(self, request):
         client_ip=get_client_ip(request)
-        reqer=None
-        # for i in Reqer.objects.filter(ip=client_ip).all():
-        #     pass
-        # else:
-        #     reqer=Reqer.objects.create(ip=client_ip,badR=0,banned=False)
         if Reqer.objects.filter(ip=client_ip).count()==0:
             reqer=Reqer.objects.create(ip=client_ip,badR=0,banned=False)
         reqer=Reqer.objects.get(ip=client_ip)

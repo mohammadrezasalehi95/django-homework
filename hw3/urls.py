@@ -35,7 +35,7 @@ urlpatterns = [
     path('signup/', views.signup),
     path('contactus/', views.contactus),
     path('login/', views.login),
-    path('logout/', auth_views.LogoutView.as_view(template_name='home/main.html')),
+    path('logout/', views.logout),
     path('profile/', views.VProfile.as_view()),
     path('profile/editprofile', views.editprofile),
     path('search/', views.Search.as_view()),
