@@ -1,4 +1,4 @@
-from .models import Tweet
+from .models import Tweet, FormTest, Profile
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
@@ -15,12 +15,14 @@ class ContactForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea, required=True, min_length=10, max_length=250)
 
 
-class EditProfileForm(forms.Form):
-    first_name = forms.CharField(required=False)
-    last_name = forms.CharField(required=False)
-    bio = forms.CharField(required=False)
-    gender = forms.ChoiceField(required=False, choices=(('M', 'Male'), ('F', 'Female')))
-    image = forms.ImageField(required=False)
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model=Profile
+        fields={
+            'bio',
+            'gender',
+            'image',
+        }
 
 
 class SignUpForm(UserCreationForm):
@@ -36,7 +38,6 @@ class SignUpForm(UserCreationForm):
         if email and User.objects.filter(email=email).exclude(username=username).exists():
             raise forms.ValidationError('کاربری با ایمیل وارد شده وجود دارد')
         return email
-
     def clean_username(self):
         username = self.cleaned_data.get('username')
         if username and User.objects.filter(username=username).exists():
@@ -52,3 +53,13 @@ class SignUpForm(UserCreationForm):
 
     def save(self, commit=True):
         super(SignUpForm, self).save(commit)
+
+
+class ImageForm(forms.ModelForm):
+    class Meta:
+        model = FormTest
+        fields = {
+            'title',
+            'content',
+            'image',
+        }

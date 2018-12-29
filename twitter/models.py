@@ -38,3 +38,7 @@ class LoggedInUser(models.Model):
     session_key = models.CharField(max_length=32, null=True, blank=True)
     def __str__(self):
         return self.user.username
+class FormTest(models.Model):
+    title = models.TextField()
+    content= models.TextField()
+    image=models.ImageField()

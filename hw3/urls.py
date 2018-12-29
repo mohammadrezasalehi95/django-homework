@@ -17,6 +17,7 @@ from django.conf import settings
 from django.contrib import admin
 
 from django.conf import settings
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import re_path
 from django.views.static import serve
 from django.urls import path
@@ -44,6 +45,7 @@ urlpatterns = [
     path('api/v1/login', views.v1_login),
     path('api/v1/tweet', views.v1_tweet),
     path('api/v2/tweet', views.v2_tweet),
+    path('img/',views.uploadImg)
 ]
 
 # ... the rest of your URLconf goes here ...
@@ -54,3 +56,5 @@ if settings.DEBUG:
             'document_root': settings.MEDIA_ROOT,
         }),
     ]
+urlpatterns+=staticfiles_urlpatterns()
+urlpatterns+=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

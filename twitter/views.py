@@ -1,9 +1,10 @@
+from django.core.mail import send_mail
 from django.db.models import F
 from django.conf import settings
 from twitter.decorators import check_recaptcha
 from django.contrib.auth import authenticate
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from datetime import datetime, timedelta
 from django.views.generic import TemplateView, ListView
 from twitter.forms import *
@@ -13,6 +14,11 @@ from twitter.models import Profile, Request, Token
 from django.utils.crypto import get_random_string
 from django.contrib.sessions.models import Session
 
+from twitter.models import Reqer
+from django.contrib.auth import views as auth_views
+from twitter.models import Profile, Request, Token
+from django.utils.crypto import get_random_string
+from django.core.files.uploadedfile import UploadedFile
 n = 1000
 h = 2
 
@@ -57,7 +63,7 @@ class VProfile(TemplateView):
         request = self.request
         user = request.user
         if user.is_authenticated:
-            if not Profile.objects.all().filter(user=user).exists():
+            if  Profile.objects.all().filter(user=user).count()==0:
                 context = {'firstname': user.first_name, 'lastname': user.last_name, 'username': user.username,
                            }
             else:
@@ -86,7 +92,6 @@ def signup(request):
 
 
 def contactus(request):
-    print(settings.GOOGLE_RECAPTCHA_SECRET_KEY)
     if request.method == 'GET':
         form = ContactForm()
     else:
@@ -134,6 +139,10 @@ def login(request):
             Reqer.objects.filter(ip=client_ip).update(badR=F('badR') + 1)
 
         if reqer.badR>15:
+            for attacked_user in User.objects.filter(username=username).all():
+                attacked_user: User
+                send_mail('you are under attack', "from ip  " + reqer.ip, settings.EMAIL_HOST_USER,
+                          recipient_list=[attacked_user.email])
             return check_recaptcha(auth_views.LoginView.as_view(template_name='home/loginCaptcha.html'))(request)
 
         if reqer.badR==15:
@@ -145,31 +154,18 @@ def login(request):
                 LoggedInUser.objects.create(user=user,session_key=request.session.session_key)
             return tmp
 
-def editprofile(request):
-    if request.method == 'GET':
-        form = EditProfileForm()
+def editprofile(request,id=None):
+    form=None
+    if request.method=='GET':
+        form=EditProfileForm()
     else:
-        form = EditProfileForm(request.POST,request.FILES)
+        form=EditProfileForm(request.POST,request.FILES)
         if form.is_valid():
-            user = request.user
-            user.first_name = form.cleaned_data['first_name']
-            user.last_name = form.cleaned_data['last_name']
-            user.save()
-            if not Profile.objects.all().filter(user=user).exists():
-                user_profile = Profile(user=user, bio=form.cleaned_data['bio'], gender=form.cleaned_data['gender'])
-            else:
-                user_profile = user.profile
-                user_profile.bio = form.cleaned_data['bio']
-                user_profile.gender = form.cleaned_data['gender']
-
-                user_profile.image = request.FILES.get('image')
-                print("asdadsasdasadsdas")
-                print(
-                    '\n\n\n\n\n'
-                )
-                print(user_profile.image.url)
-            user_profile.save()
-            return HttpResponseRedirect("/profile")
+            instance=Profile()
+            instance.user=request.user
+            instance=form.save()
+            instance.save()
+            return HttpResponse('success')
     return render(request, "home/editprofile.html", {'form': form})
 
 
@@ -216,14 +212,10 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-
 class ShowTweets(ListView):
     template_name = 'home/main.html'
-
     def get_queryset(self):
         return Tweet.objects.all()
-
-
 def v1_login(request):
     username = request.GET['username']
     password = request.GET['password']
@@ -231,6 +223,10 @@ def v1_login(request):
     client_ip=get_client_ip(request)
     reqer = Reqer.objects.get(ip=client_ip)
     if reqer.badRA>15:
+        for attacked_user in User.objects.filter(username=username).all():
+            attacked_user:User
+            send_mail('you are under attack', "from ip  "+reqer.ip, settings.EMAIL_HOST_USER,
+                      recipient_list=[attacked_user.email])
         return JsonResponse({'response':'banned'})
     if user is not None:
         token_str= get_random_string(64)
@@ -265,3 +261,14 @@ def v2_tweet(request):
         else:
             return JsonResponse({'success':'True'})
     return HttpResponse('!!!!!!!!!!!')
+
+
+def uploadImg(request):
+    if request.method=='POST':
+        form =ImageForm(request.POST or None,request.FILES or None,)
+        if form.is_valid():
+            ins=FormTest()
+            ins=form.save(commit=True)
+            ins.save()
+
+    return render(request, 'home/formShower.html', {'form':ImageForm()})
