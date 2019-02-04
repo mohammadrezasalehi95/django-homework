@@ -17,6 +17,7 @@ class ContactForm(forms.Form):
 
 class EditProfileForm(forms.ModelForm):
     class Meta:
+
         model=Profile
         fields={
             'bio',

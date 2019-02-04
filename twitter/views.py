@@ -3,22 +3,18 @@ from django.db.models import F
 from django.conf import settings
 from twitter.decorators import check_recaptcha
 from django.contrib.auth import authenticate
-from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import  HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from datetime import datetime, timedelta
 from django.views.generic import TemplateView, ListView
 from twitter.forms import *
 from twitter.models import Profile, Request, Reqer, LoggedInUser
-from django.contrib.auth import views as auth_views
-from twitter.models import Profile, Request, Token
-from django.utils.crypto import get_random_string
 from django.contrib.sessions.models import Session
-
 from twitter.models import Reqer
 from django.contrib.auth import views as auth_views
 from twitter.models import Profile, Request, Token
 from django.utils.crypto import get_random_string
-from django.core.files.uploadedfile import UploadedFile
+
 n = 1000
 h = 2
 
@@ -36,12 +32,8 @@ def post_new(request):
     else:
         form = PostForm()
     return render(request, 'home/tweet_edit.html', {'form': form})
-
-
-
 class Search(TemplateView):
     template_name = "home/search_result.html"
-
     def get_context_data(self):
         request = self.request
         q = request.GET.get('search_box')
@@ -55,10 +47,8 @@ class Search(TemplateView):
         ln = list(chain(fn, ln, us))
         return {'ln': ln}
 
-
 class VProfile(TemplateView):
     template_name = "home/profile.html"
-
     def get_context_data(self, **kwargs):
         request = self.request
         user = request.user
@@ -70,19 +60,14 @@ class VProfile(TemplateView):
                 context = {'firstname': user.first_name, 'lastname': user.last_name, 'username': user.username,
                            'bio': user.profile.bio, 'gender': user.profile.gender, 'image': user.profile.image.url,
                            }
-
             return context
         else:
             Reqer.objects.filter(ip=get_client_ip(request)).update(badR=F('badR')+1)
             return HttpResponse("login first", status=401)
-
-
 @check_recaptcha
 def signup(request):
-
     if request.method == 'POST':
         form = SignUpForm(request.POST)
-
         if form.is_valid() and request.recaptcha_is_valid:
             user = form.save()
             return redirect('/')
@@ -107,7 +92,7 @@ def contactus(request):
             return render(request, 'home/success.html')
     return render(request, "home/contactus.html", {'form': form,'p': True})
 def logout(request):
-    # LoggedInUser.objects.filter(user=request.user).delete()
+    LoggedInUser.objects.filter(user=request.user).delete()
     return auth_views.LogoutView.as_view(template_name='home/main.html')(request)
 
 def login(request):
@@ -118,7 +103,10 @@ def login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
+        client_ip=get_client_ip(request)
+        reqer = Reqer.objects.get(ip=client_ip)
         if user:
+            Reqer.objects.filter(ip=client_ip).update(badR=0)
             for logged_user in LoggedInUser.objects.filter(user=user).all():
                 stored_session_key = logged_user.session_key
                 print("********")
@@ -130,13 +118,9 @@ def login(request):
                     flag=False
                 break
 
-
-
-        client_ip=get_client_ip(request)
-        reqer = Reqer.objects.get(ip=client_ip)
-
         if user is None:
             Reqer.objects.filter(ip=client_ip).update(badR=F('badR') + 1)
+        print(reqer.badR)
 
         if reqer.badR>15:
             for attacked_user in User.objects.filter(username=username).all():
@@ -153,19 +137,14 @@ def login(request):
             if flag:
                 LoggedInUser.objects.create(user=user,session_key=request.session.session_key)
             return tmp
-
-def editprofile(request,id=None):
-    form=None
-    if request.method=='GET':
-        form=EditProfileForm()
-    else:
-        form=EditProfileForm(request.POST,request.FILES)
-        if form.is_valid():
-            instance=Profile()
-            instance.user=request.user
-            instance=form.save()
-            instance.save()
-            return HttpResponse('success')
+        return auth_views.LoginView.as_view(template_name='home/login.html')(request)
+def editprofile(request):
+    form=EditProfileForm(request.POST or None,request.FILES or None)
+    if form.is_valid():
+        instance=form.save(commit=False)
+        instance.user=request.user
+        instance.save()
+        return HttpResponse('پروفایل شما با موفقیت ثبت شد')
     return render(request, "home/editprofile.html", {'form': form})
 
 
@@ -189,15 +168,9 @@ class SafeWall:
             return HttpResponseForbidden("u are forbidden")
         response = self.get_response(request)
         reqer = Reqer.objects.get(ip=client_ip)
-        if reqer.badR>=n:
-            Reqer.objects.filter(ip=client_ip).update(banned=True)
-            HttpResponseForbidden("u are forbidden")
-        if reqer.badR==whatch:Reqer.objects.filter(ip=client_ip).update(badR=0)
         return response
 def checkAttack(request):
     global n, h
-
-
     time_threshold = datetime.now() - timedelta(seconds=h)
     tmp = get_client_ip(request)
     results = Request.objects.filter(ip=tmp).filter(time_stamp__gt=time_threshold).count()
@@ -243,7 +216,6 @@ def tweet(user,content,title):
     new_tweet=Tweet(user=user,content=content,title=title)
     new_tweet.save()
 
-
 def v1_tweet(request):
     for token in Token.objects.filter(token_str=request.GET['token']).all():
         tweet(token.user,request.GET['content'],request.GET['title'])
@@ -270,5 +242,4 @@ def uploadImg(request):
             ins=FormTest()
             ins=form.save(commit=True)
             ins.save()
-
     return render(request, 'home/formShower.html', {'form':ImageForm()})

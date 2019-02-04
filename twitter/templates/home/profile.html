@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 {% block content %}
     <img src="{% if image is None %}
-    media/studentPhoto.jpeg
+    media/default.jpg
     {% else %}
     {{ image }}
     {% endif %}" id=" id_picture" >
@@ -13,15 +13,6 @@
     {% else %}
         <p id="id_gender">زن</p>
     {% endif %}
-    <p id="id_bio">{{ bio }}</p>
-    <p>شما به عنوان
-        {% if type == 'student' %}
-            دانشجو
-        {% elif type == 'professor' %}
-            استاد
-        {% endif %}
-        وارد شدید
-    </p>
-
+    <p id="id_bio" >{{ bio }}</p>
     <a href="/profile/editprofile" id="id_edit_profile"> edit your profile</a>
 {% endblock content %}

@@ -1,9 +1,10 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+
 class Token(models.Model):
-    token_str=models.CharField(primary_key=True, max_length=100)
-    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    token_str = models.CharField(primary_key=True, max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class Tweet(models.Model):
@@ -14,12 +15,13 @@ class Tweet(models.Model):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE, related_name='profile')
     bio = models.TextField(max_length=500, blank=True)
-    gender = models.CharField(
-        max_length=1, choices=(('M', 'Male'), ('F', 'Female')),
-        blank=True, null=True)
-    image = models.ImageField(null=True,upload_to='media/')
+    gender = models.CharField(max_length=1, choices=(('M', 'Male'), ('F', 'Female')),
+                              blank=True, null=True)
+    image = models.ImageField(default='media/default.png', blank=True, upload_to='media/')
+
+
 class Request(models.Model):
     ip = models.TextField()
     browser = models.TextField()
@@ -27,18 +29,21 @@ class Request(models.Model):
 
 
 class Reqer(models.Model):
-    ip=models.TextField(primary_key=True)
-    badR=models.IntegerField(default=0)
-    badRA=models.IntegerField(default=0)
-    banned=models.BooleanField(default=False)
+    ip = models.TextField(primary_key=True)
+    badR = models.IntegerField(default=0)
+    badRA = models.IntegerField(default=0)
+    banned = models.BooleanField(default=False)
 
 
 class LoggedInUser(models.Model):
     user = models.OneToOneField(User, related_name='logged_in_user', on_delete=models.CASCADE)
     session_key = models.CharField(max_length=32, null=True, blank=True)
+
     def __str__(self):
         return self.user.username
+
+
 class FormTest(models.Model):
     title = models.TextField()
-    content= models.TextField()
-    image=models.ImageField()
+    content = models.TextField()
+    image = models.ImageField()
